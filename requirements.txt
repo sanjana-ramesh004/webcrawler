@@ -1,0 +1,28 @@
+# LangChain / LangGraph
+langchain
+langchain-core
+langchain-community
+langgraph
+
+# Mistral
+mistralai
+
+# Tavily
+tavily-python
+
+# Cohere (optional reranking)
+cohere
+
+# Web fetching
+httpx
+beautifulsoup4
+lxml
+
+# FastAPI
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Config
+pydantic-settings
+python-dotenv

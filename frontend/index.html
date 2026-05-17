@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AiR</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ── SIDEBAR ─────────────────────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">AiR</div>
+    <div class="logo-sub">Web RAG</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-item active" data-panel="chat">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M2 2h12v9H9l-3 3v-3H2z" stroke-linejoin="round"/>
+      </svg>
+      Chat
+    </div>
+    <div class="nav-item" data-panel="search">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="7" cy="7" r="4"/><path d="M10.5 10.5L14 14" stroke-linecap="round"/>
+      </svg>
+      Search
+    </div>
+    <div class="nav-item" data-panel="sessions">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/>
+      </svg>
+      Sessions
+    </div>
+  </nav>
+  <div class="sidebar-foot">
+    <div class="status">
+      <span class="dot"></span>
+      <span id="api-status">connecting…</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ────────────────────────────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- ── CHAT ─────────────────────────────────────────────────────────────── -->
+  <div class="panel active" id="panel-chat">
+    <div class="ph">
+      <div class="ph-title">Chat</div>
+      <div class="ph-sub">Ask anything — searches the web in real time across 10 sources</div>
+    </div>
+    <div class="chat-body" id="chat-body">
+      <div class="msg system">
+        <div class="msg-role">system</div>
+        <div class="msg-body">Ask a question. AiR searches the web, reads top results, and answers with citations.</div>
+      </div>
+    </div>
+    <div class="chat-foot">
+      <div class="input-row">
+        <textarea class="chat-ta" id="chat-input" placeholder="Ask anything…" rows="1"></textarea>
+        <button class="btn-send" id="btn-send">&#9658;</button>
+      </div>
+      <div class="chat-hint">Enter to send &nbsp;·&nbsp; Shift+Enter for new line</div>
+    </div>
+  </div>
+
+  <!-- ── SEARCH ────────────────────────────────────────────────────────────── -->
+  <div class="panel" id="panel-search">
+    <div class="ph">
+      <div class="ph-title">Search</div>
+      <div class="ph-sub">Query a specific URL — paste an image to search visually</div>
+    </div>
+    <div class="search-body">
+
+      <!-- Form -->
+      <div class="search-form">
+        <div>
+          <label class="field-label">URL to search</label>
+          <input class="field-input" id="search-url" type="url"
+            placeholder="https://www.zara.com/us/en/woman-new-in-l1180.html">
+        </div>
+
+        <div>
+          <label class="field-label">Your query</label>
+          <input class="field-input" id="search-query" type="text"
+            placeholder="Find me something similar to the image I uploaded">
+        </div>
+
+        <div>
+          <label class="field-label">Reference image (optional)</label>
+          <div class="image-upload-zone" id="image-drop-zone">
+            <input type="file" id="search-image-file" accept="image/*">
+            <div id="preview-wrap" style="display:none">
+              <img class="image-preview" id="preview-img" src="" alt="preview">
+              <button class="btn-remove" id="btn-remove-img">✕</button>
+            </div>
+            <div id="upload-placeholder">
+              <div class="upload-icon">🖼️</div>
+              <div class="upload-hint">Drop image here or click to upload</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="search-status" class="status-box"></div>
+        <button class="btn-primary" id="btn-search">Search</button>
+      </div>
+
+      <!-- Result -->
+      <div class="search-result" id="search-result">
+        <div class="result-header">
+          <div class="result-title" id="result-title"></div>
+          <a class="result-link" id="result-link" href="#" target="_blank" rel="noreferrer"></a>
+        </div>
+        <div class="result-answer" id="result-answer"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── SESSIONS ──────────────────────────────────────────────────────────── -->
+  <div class="panel" id="panel-sessions">
+    <div class="ph">
+      <div class="ph-title">Sessions</div>
+      <div class="ph-sub">Auto-saved chat history — named by first question</div>
+    </div>
+    <div class="sessions-layout">
+      <div class="sessions-list" id="sessions-list">
+        <div class="sessions-list-title">History</div>
+        <div id="sessions-items">
+          <div class="no-sessions">No sessions yet</div>
+        </div>
+      </div>
+      <div class="sessions-detail" id="sessions-detail">
+        <div class="empty-state">
+          <div class="empty-icon">💬</div>
+          Select a session to view history
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
