@@ -28,9 +28,20 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# ── CORS ───────────────────────────────────────────────────────────────────────
+# Add your actual Railway Node URL and Vercel URL here
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    # Railway Node BFF — replace with your actual URL
+    "https://alert-integrity-production-974d.up.railway.app",
+    # Vercel frontend — replace with your actual URL
+    "https://webcrawler-self.vercel.app/alert-integrity-production-974d.up.railway.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
