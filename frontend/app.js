@@ -1,4 +1,4 @@
-const API = 'http://localhost:3000';
+const API = 'https://alert-integrity-production-974d.up.railway.app';
 
 // ── Nav ──────────────────────────────────────────────────────────────────────
 document.querySelectorAll('.nav-item').forEach(item => {
