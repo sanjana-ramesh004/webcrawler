@@ -66,7 +66,7 @@ def tavily_search(state: AgentState) -> dict:
             max_results=cfg.tavily_max_results,
             search_depth="basic",
             include_answer=False,
-            include_raw_content=False,
+            include_raw_content=True,   # get full page content from Tavily
         )
 
         raw_results = response.get("results") if isinstance(response, dict) else []
@@ -74,9 +74,10 @@ def tavily_search(state: AgentState) -> dict:
             {
                 "url":     r.get("url", ""),
                 "title":   r.get("title", ""),
-                "snippet": r.get("content", ""),  # Tavily already returns content
+                # prefer raw_content (full page) over content (snippet)
+                "snippet": r.get("raw_content") or r.get("content") or "",
                 "score":   r.get("score", 0.0),
-                "content": r.get("content", ""),  # store for direct use
+                "content": r.get("raw_content") or r.get("content") or "",
             }
             for r in (raw_results or [])
             if r.get("url")
@@ -94,57 +95,49 @@ def tavily_search(state: AgentState) -> dict:
 
 def fetch_and_extract(state: AgentState) -> dict:
     """
-    Build page content from Tavily snippets + live URL fetching.
-    Always fetches ALL URLs that have no Tavily content.
-    Uses a fresh event loop in a thread to avoid asyncio conflicts.
+    Use Tavily content directly — no live fetching needed since
+    we now use include_raw_content=True in tavily_search.
+    Falls back to snippet if raw_content is empty.
     """
     try:
         results = state.get("search_results", [])
         pages = []
-        urls_to_fetch = []
 
         for r in results:
-            content_text = (r.get("content") or r.get("snippet") or "").strip()
-            if len(content_text) > 100:
+            text = (r.get("content") or r.get("snippet") or "").strip()
+            if text:
                 pages.append({
                     "url":     r["url"],
                     "title":   r.get("title", ""),
-                    "content": content_text,
+                    "content": text[:4000],
                 })
-            else:
-                # Always try to fetch — even if snippet exists but is short
-                urls_to_fetch.append((r["url"], r.get("title", "")))
 
-        # Fetch missing URLs using a fresh thread with its own event loop
-        if urls_to_fetch:
-            print(f"[fetch_and_extract] live-fetching {len(urls_to_fetch)} URLs…")
+        print(f"[fetch_and_extract] total pages with content: {len(pages)}")
+
+        # If still nothing, try live fetch as last resort
+        if not pages:
+            print("[fetch_and_extract] no Tavily content — trying live fetch…")
             import threading
+            urls = [r["url"] for r in results[:5]]  # only fetch top 5
+            fetched = []
 
-            fetched_results = []
-            errors = []
-
-            def run_fetch():
+            def run():
                 import asyncio as _asyncio
                 loop = _asyncio.new_event_loop()
                 _asyncio.set_event_loop(loop)
                 try:
-                    urls = [u for u, _ in urls_to_fetch]
-                    result = loop.run_until_complete(fetch_urls(urls))
-                    fetched_results.extend(result)
+                    fetched.extend(loop.run_until_complete(fetch_urls(urls)))
                 except Exception as e:
-                    errors.append(str(e))
+                    print(f"[fetch_and_extract] live fetch error: {e}")
                 finally:
                     loop.close()
 
-            t = threading.Thread(target=run_fetch)
+            t = threading.Thread(target=run)
             t.start()
-            t.join(timeout=30)  # max 30s for all fetches
+            t.join(timeout=20)
+            pages.extend(fetched)
+            print(f"[fetch_and_extract] live fetched {len(fetched)} pages")
 
-            if errors:
-                print(f"[fetch_and_extract] fetch errors: {errors}")
-            pages.extend(fetched_results)
-
-        print(f"[fetch_and_extract] total pages with content: {len(pages)}")
         return {"fetched_pages": pages}
 
     except Exception as e:
